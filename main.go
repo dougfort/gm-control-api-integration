@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/pkg/errors"
@@ -18,9 +19,9 @@ import (
 const zoneName = "workregion"
 
 type clientStruct struct {
-	logger zerolog.Logger
+	logger         zerolog.Logger
 	oldtownAddress string
-	httpClient http.Client
+	httpClient     http.Client
 }
 
 func main() {
@@ -36,14 +37,20 @@ func main() {
 		logger.Debug().Msg("log level set to debug")
 	}
 
-	client := clientStruct {
-		logger: logger,
-		oldtownAddress: viper.GetString("oldtown_address"),		
+	client := clientStruct{
+		logger:         logger,
+		oldtownAddress: viper.GetString("oldtown_address"),
 	}
 
+	logger.Debug().Msg("creating zone")
 	zone, err := createZone(&client)
 	if err != nil {
 		logger.Fatal().AnErr("createZone", err).Msg("main")
+	}
+	logger.Debug().Msg("deleting zone")
+	err = deleteZone(&client, zone)
+	if err != nil {
+		logger.Fatal().AnErr("deleteZone", err).Msg("main")
 	}
 
 	logger.Debug().Str("zone", fmt.Sprintf("%+v", zone)).Msg("main")
@@ -59,14 +66,23 @@ func createZone(client *clientStruct) (api.Zone, error) {
 	var reqZone api.Zone
 	var respZone api.Zone
 	var buffer bytes.Buffer
+	var request http.Request
 
 	reqZone.Name = zoneName
 
 	if err := json.NewEncoder(&buffer).Encode(&reqZone); err != nil {
 		return api.Zone{}, errors.Wrap(err, "Encode")
 	}
-	
-	rawMessage, err := client.doHTTP("POST", "/v1.0/zone", &buffer)
+
+	request.Method = "POST"
+	request.URL = &url.URL{
+		Scheme: "http",
+		Host:   client.oldtownAddress,
+		Path:   "/v1.0/zone",
+	}
+	request.Body = ioutil.NopCloser(&buffer)
+
+	rawMessage, err := client.doHTTP(&request)
 	if err != nil {
 		return api.Zone{}, errors.Wrap(err, "doHTTP")
 	}
@@ -78,15 +94,29 @@ func createZone(client *clientStruct) (api.Zone, error) {
 	return respZone, nil
 }
 
-func (client *clientStruct) doHTTP(method string, path string, body io.Reader) (json.RawMessage, error) {
+func deleteZone(client *clientStruct, zone api.Zone) error {
+	var request http.Request
 
-	uri := fmt.Sprintf("http://%s%s", client.oldtownAddress, path)
-
-	request, err := http.NewRequest(method, uri, body)
-	if err != nil {
-		return nil, errors.Wrap(err, "NewRequest")
+	request.Method = "DELETE"
+	request.URL = &url.URL{
+		Scheme: "http",
+		Host:   client.oldtownAddress,
+		Path:   fmt.Sprintf("/v1.0/zone/%s", url.PathEscape(string(zone.ZoneKey))),
 	}
 
+	values := url.Values{}
+	values.Add("checksum", zone.Checksum.Checksum)
+	request.URL.RawQuery = values.Encode()
+
+	_, err := client.doHTTP(&request)
+	if err != nil {
+		return errors.Wrap(err, "doHTTP")
+	}
+
+	return nil
+}
+
+func (client *clientStruct) doHTTP(request *http.Request) (json.RawMessage, error) {
 	response, err := client.httpClient.Do(request)
 	if err != nil {
 		return nil, errors.Wrap(err, "client.Do")
@@ -99,20 +129,14 @@ func (client *clientStruct) doHTTP(method string, path string, body io.Reader) (
 	}
 
 	if response.StatusCode != http.StatusOK {
-		rawMessage, _ := bodyMap["error"]
+		rawMessage := bodyMap["error"]
 		var errorMap map[string]string
 		if err = json.Unmarshal(rawMessage, &errorMap); err != nil {
 			client.logger.Error().AnErr("Unmarshal", err).Msg("error in error handling")
 		}
-		return nil, errors.Errorf("HTTP request failed: (%d) %s: %+v", 
+		return nil, errors.Errorf("HTTP request failed: (%d) %s: %+v",
 			response.StatusCode, response.Status, errorMap)
 	}
 
-	rawMessage, ok := bodyMap["result"]
-	if !ok {
-		return nil, errors.Errorf("unexpected result %+v", 
-			bodyMap)
-	}
-
-	return rawMessage, nil
+	return bodyMap["result"], nil
 }
