@@ -108,6 +108,35 @@ func getClusterByKey(client *clientStruct, clusterKey api.ClusterKey) (api.Clust
 	return respCluster, nil
 }
 
+func editCluster(client *clientStruct, cluster api.Cluster) (api.Cluster, error) {
+	var respCluster api.Cluster
+	var buffer bytes.Buffer
+	var request http.Request
+
+	if err := json.NewEncoder(&buffer).Encode(&cluster); err != nil {
+		return api.Cluster{}, errors.Wrap(err, "Encode")
+	}
+
+	request.Method = "PUT"
+	request.URL = &url.URL{
+		Scheme: "http",
+		Host:   client.oldtownAddress,
+		Path:   clusterKeyPath(cluster),
+	}
+	request.Body = ioutil.NopCloser(&buffer)
+
+	rawMessage, err := client.doHTTP(&request)
+	if err != nil {
+		return api.Cluster{}, errors.Wrap(err, "doHTTP")
+	}
+
+	if err = json.Unmarshal(rawMessage, &respCluster); err != nil {
+		return api.Cluster{}, errors.Wrap(err, "Unmarshal")
+	}
+
+	return respCluster, nil
+}
+
 func deleteCluster(client *clientStruct, cluster api.Cluster) error {
 	var request http.Request
 
@@ -115,7 +144,7 @@ func deleteCluster(client *clientStruct, cluster api.Cluster) error {
 	request.URL = &url.URL{
 		Scheme: "http",
 		Host:   client.oldtownAddress,
-		Path:   fmt.Sprintf("/v1.0/cluster/%s", url.PathEscape(string(cluster.ClusterKey))),
+		Path:   clusterKeyPath(cluster),
 	}
 
 	values := url.Values{}
@@ -128,4 +157,8 @@ func deleteCluster(client *clientStruct, cluster api.Cluster) error {
 	}
 
 	return nil
+}
+
+func clusterKeyPath(cluster api.Cluster) string {
+	return fmt.Sprintf("/v1.0/cluster/%s", url.PathEscape(string(cluster.ClusterKey)))
 }

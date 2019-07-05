@@ -86,6 +86,23 @@ func main() {
 			Msg("zone object mismatch")
 	}
 
+	logger.Debug().Msg("editing the cluster object")
+	maxConnections := 42
+	model.Cluster1.CircuitBreakers = &api.CircuitBreakers{MaxConnections: &maxConnections}
+	cluster3, err := editCluster(&client, model.Cluster1)
+	if err != nil {
+		logger.Fatal().AnErr("editCluster", err).Msg("main")
+	}
+	// we can't compare the full objects, becuase they have differfent
+	// checksums
+	if *cluster3.CircuitBreakers.MaxConnections != *model.Cluster1.CircuitBreakers.MaxConnections {
+		logger.Fatal().
+			Str("cluster", fmt.Sprintf("%+v", model.Cluster1)).
+			Str("cluster3", fmt.Sprintf("%+v", cluster3)).
+			Msg("CircuitBreakers mismatch")
+	}
+	model.Cluster1 = cluster3
+
 	logger.Debug().Msg("getting the cluster object")
 	cluster2, err := getClusterByKey(&client, model.Cluster1.ClusterKey)
 	if err != nil {
