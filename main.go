@@ -89,29 +89,54 @@ func main() {
 	logger.Debug().Msg("editing the cluster object")
 	maxConnections := 42
 	model.Cluster1.CircuitBreakers = &api.CircuitBreakers{MaxConnections: &maxConnections}
-	cluster3, err := editCluster(&client, model.Cluster1)
+	cluster2, err := editCluster(&client, model.Cluster1)
 	if err != nil {
 		logger.Fatal().AnErr("editCluster", err).Msg("main")
 	}
-	// we can't compare the full objects, becuase they have differfent
-	// checksums
-	if *cluster3.CircuitBreakers.MaxConnections != *model.Cluster1.CircuitBreakers.MaxConnections {
-		logger.Fatal().
-			Str("cluster", fmt.Sprintf("%+v", model.Cluster1)).
-			Str("cluster3", fmt.Sprintf("%+v", cluster3)).
-			Msg("CircuitBreakers mismatch")
-	}
-	model.Cluster1 = cluster3
-
-	logger.Debug().Msg("getting the cluster object")
-	cluster2, err := getClusterByKey(&client, model.Cluster1.ClusterKey)
-	if err != nil {
-		logger.Fatal().AnErr("getClusterByKey", err).Msg("main")
-	}
-	if !cluster2.Equals(model.Cluster1) {
+	if *cluster2.CircuitBreakers.MaxConnections != *model.Cluster1.CircuitBreakers.MaxConnections {
 		logger.Fatal().
 			Str("cluster", fmt.Sprintf("%+v", model.Cluster1)).
 			Str("cluster2", fmt.Sprintf("%+v", cluster2)).
+			Msg("CircuitBreakers mismatch")
+	}
+	model.Cluster1 = cluster2
+
+	logger.Debug().Msg("adding a cluster instance")
+	instance := api.Instance{Host: "localhost", Port: 42}
+	cluster3, err := putClusterInstance(&client, model.Cluster1, instance)
+	if err != nil {
+		logger.Fatal().AnErr("putClusterInstance", err).Msg("main")
+	}
+	if len(cluster3.Instances) != 1 || !cluster3.Instances[0].Equals(instance) {
+		logger.Fatal().
+			Str("cluster", fmt.Sprintf("%+v", model.Cluster1)).
+			Str("cluster3", fmt.Sprintf("%+v", cluster3)).
+			Msg("cluster instances mismatch")
+	}
+	model.Cluster1 = cluster3
+
+	logger.Debug().Msg("deleting a cluster instance")
+	cluster4, err := deleteClusterInstance(&client, model.Cluster1, instance)
+	if err != nil {
+		logger.Fatal().AnErr("deleteClusterInstance", err).Msg("main")
+	}
+	if len(cluster4.Instances) != 0 {
+		logger.Fatal().
+			Str("cluster", fmt.Sprintf("%+v", model.Cluster1)).
+			Str("cluster4", fmt.Sprintf("%+v", cluster4)).
+			Msg("cluster instance not deleted")
+	}
+	model.Cluster1 = cluster4
+
+	logger.Debug().Msg("getting the cluster object")
+	cluster5, err := getClusterByKey(&client, model.Cluster1.ClusterKey)
+	if err != nil {
+		logger.Fatal().AnErr("getClusterByKey", err).Msg("main")
+	}
+	if !cluster5.Equals(model.Cluster1) {
+		logger.Fatal().
+			Str("cluster", fmt.Sprintf("%+v", model.Cluster1)).
+			Str("cluster5", fmt.Sprintf("%+v", cluster5)).
 			Msg("cluster object mismatch")
 	}
 
