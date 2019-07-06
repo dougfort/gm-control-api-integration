@@ -41,6 +41,10 @@ func main() {
 		logger.Fatal().AnErr("model.loadDomain", err).Msg("main")
 	}
 
+	if err = model.loadListener(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.loadListener", err).Msg("main")
+	}
+
 	if err = model.getZone(logger, &client); err != nil {
 		logger.Fatal().AnErr("model.getZone", err).Msg("main")
 	}
@@ -51,6 +55,14 @@ func main() {
 
 	if err = model.modifyDomain(logger, &client); err != nil {
 		logger.Fatal().AnErr("model.modifyDomain", err).Msg("main")
+	}
+
+	if err = model.modifyListener(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.modifyListener", err).Msg("main")
+	}
+
+	if err = model.deleteListener(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.deleteListener", err).Msg("main")
 	}
 
 	if err = model.deleteDomain(logger, &client); err != nil {

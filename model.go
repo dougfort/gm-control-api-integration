@@ -13,6 +13,7 @@ type Model struct {
 	Zone     api.Zone
 	Cluster1 api.Cluster
 	Domain   api.Domain
+	Listener api.Listener
 }
 
 func (model *Model) loadZone(logger zerolog.Logger, client *clientStruct) error {
@@ -71,7 +72,7 @@ func (model *Model) loadDomain(logger zerolog.Logger, client *clientStruct) erro
 	logger.Debug().Msg("verifying that domain does not exist before test")
 	domains, err := queryDomainByName(client)
 	if err != nil {
-		return errors.Wrap(err, "queryClustersByName")
+		return errors.Wrap(err, "queryDomainByName")
 	}
 	if len(domains) != 0 {
 		return errors.Errorf("domain found before test: %+v", domains)
@@ -88,6 +89,32 @@ func (model *Model) loadDomain(logger zerolog.Logger, client *clientStruct) erro
 	}
 	if len(domains) != 1 {
 		return errors.Errorf("wrong number of domains found: %+v", domains)
+	}
+
+	return nil
+}
+
+func (model *Model) loadListener(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("verifying that listener does not exist before test")
+	listeners, err := queryListenerByName(client)
+	if err != nil {
+		return errors.Wrap(err, "queryListenerByName")
+	}
+	if len(listeners) != 0 {
+		return errors.Errorf("listener found before test: %+v", listeners)
+	}
+	logger.Debug().Msg("creating listener")
+	model.Listener, err = createListener(client, model.Zone, model.Domain)
+	if err != nil {
+		return errors.Wrap(err, "createListener")
+	}
+	logger.Debug().Msg("verifying that listener exists")
+	listeners, err = queryListenerByName(client)
+	if err != nil {
+		return errors.Wrap(err, "queryListenerByName")
+	}
+	if len(listeners) != 1 {
+		return errors.Errorf("wrong number of listeners found: %+v", listeners)
 	}
 
 	return nil
@@ -205,6 +232,39 @@ func (model *Model) modifyDomain(logger zerolog.Logger, client *clientStruct) er
 	return nil
 }
 
+func (model *Model) modifyListener(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("editing the listener object")
+	const testPort = 888
+	model.Listener.Port = testPort
+	listener2, err := editListener(client, model.Listener)
+	if err != nil {
+		return errors.Wrap(err, "editDomain")
+	}
+	if listener2.Port != model.Listener.Port {
+		return errors.Errorf(
+			"Port mismatch: listener: %+v; listener2: %+v",
+			model.Listener,
+			listener2,
+		)
+	}
+	model.Listener = listener2
+
+	logger.Debug().Msg("getting the listener object")
+	listener3, err := getListenerByKey(client, model.Listener.ListenerKey)
+	if err != nil {
+		return errors.Wrap(err, "getListenerByKey")
+	}
+	if !listener3.Equals(model.Listener) {
+		return errors.Errorf(
+			"listener object mismatch:  listener: %+v; listener3: %+v",
+			model.Listener,
+			listener3,
+		)
+	}
+
+	return nil
+}
+
 func (model *Model) deleteCluster(logger zerolog.Logger, client *clientStruct) error {
 	logger.Debug().Msg("deleting cluster")
 	err := deleteCluster(client, model.Cluster1)
@@ -221,6 +281,25 @@ func (model *Model) deleteCluster(logger zerolog.Logger, client *clientStruct) e
 	}
 
 	model.Cluster1 = api.Cluster{}
+	return nil
+}
+
+func (model *Model) deleteListener(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("deleting listener")
+	err := deleteListener(client, model.Listener)
+	if err != nil {
+		return errors.Wrap(err, "deleteListener")
+	}
+	logger.Debug().Msg("verifying that listener does not exist after test")
+	listeners, err := queryListenerByName(client)
+	if err != nil {
+		return errors.Wrap(err, "queryListenerByName")
+	}
+	if len(listeners) != 0 {
+		return errors.Errorf("listener found after delete: %+v", fmt.Sprintf("%+v", listeners))
+	}
+
+	model.Listener = api.Listener{}
 	return nil
 }
 
