@@ -49,6 +49,10 @@ func main() {
 		logger.Fatal().AnErr("model.loadSharedRules", err).Msg("main")
 	}
 
+	if err = model.loadRoute(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.loadRoute", err).Msg("main")
+	}
+
 	if err = model.getZone(logger, &client); err != nil {
 		logger.Fatal().AnErr("model.getZone", err).Msg("main")
 	}
@@ -69,8 +73,16 @@ func main() {
 		logger.Fatal().AnErr("model.modifySharedRules", err).Msg("main")
 	}
 
+	if err = model.modifyRoute(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.modifySharedRules", err).Msg("main")
+	}
+
 	if err = model.deleteSharedRules(logger, &client); err != nil {
 		logger.Fatal().AnErr("model.deleteSharedRules", err).Msg("main")
+	}
+
+	if err = model.deleteRoute(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.deleteRoute", err).Msg("main")
 	}
 
 	if err = model.deleteListener(logger, &client); err != nil {

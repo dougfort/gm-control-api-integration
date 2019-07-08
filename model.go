@@ -121,6 +121,7 @@ func (model *Model) loadListener(logger zerolog.Logger, client *clientStruct) er
 
 	return nil
 }
+
 func (model *Model) loadSharedRules(logger zerolog.Logger, client *clientStruct) error {
 	logger.Debug().Msg("verifying that shared_rules does not exist before test")
 	sharedRulesSlice, err := querySharedRulesByName(client)
@@ -142,6 +143,32 @@ func (model *Model) loadSharedRules(logger zerolog.Logger, client *clientStruct)
 	}
 	if len(sharedRulesSlice) != 1 {
 		return errors.Errorf("wrong number of shared rules found: %+v", sharedRulesSlice)
+	}
+
+	return nil
+}
+
+func (model *Model) loadRoute(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("verifying that route does not exist before test")
+	routes, err := queryRouteByPath(client)
+	if err != nil {
+		return errors.Wrap(err, "queryRouteByPath")
+	}
+	if len(routes) != 0 {
+		return errors.Errorf("routes found before test: %+v", routes)
+	}
+	logger.Debug().Msg("creating route")
+	model.Route, err = createRoute(client, model.Zone, model.Domain, model.SharedRules)
+	if err != nil {
+		return errors.Wrap(err, "createRoute")
+	}
+	logger.Debug().Msg("verifying that route exists")
+	routes, err = queryRouteByPath(client)
+	if err != nil {
+		return errors.Wrap(err, "queryRouteByPath")
+	}
+	if len(routes) != 1 {
+		return errors.Errorf("wrong number of routes found: %+v", routes)
 	}
 
 	return nil
@@ -325,6 +352,39 @@ func (model *Model) modifySharedRules(logger zerolog.Logger, client *clientStruc
 	return nil
 }
 
+func (model *Model) modifyRoute(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("editing the route object")
+
+	model.Route.PrefixRewrite = "/prefix"
+	route2, err := editRoute(client, model.Route)
+	if err != nil {
+		return errors.Wrap(err, "editRoute")
+	}
+	if route2.PrefixRewrite != model.Route.PrefixRewrite {
+		return errors.Errorf(
+			"PrefixRewrite mismatch: route: %+v; route2: %+v",
+			model.Route,
+			route2,
+		)
+	}
+	model.Route = route2
+
+	logger.Debug().Msg("getting the route object")
+	route3, err := getRouteByKey(client, model.Route.RouteKey)
+	if err != nil {
+		return errors.Wrap(err, "getRouteByKey")
+	}
+	if !route3.Equals(model.Route) {
+		return errors.Errorf(
+			"route object mismatch:  route: %+v; route3: %+v",
+			model.Route,
+			route3,
+		)
+	}
+
+	return nil
+}
+
 func (model *Model) deleteCluster(logger zerolog.Logger, client *clientStruct) error {
 	logger.Debug().Msg("deleting cluster")
 	err := deleteCluster(client, model.Cluster1)
@@ -379,6 +439,25 @@ func (model *Model) deleteSharedRules(logger zerolog.Logger, client *clientStruc
 	}
 
 	model.SharedRules = api.SharedRules{}
+	return nil
+}
+
+func (model *Model) deleteRoute(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("deleting route")
+	err := deleteRoute(client, model.Route)
+	if err != nil {
+		return errors.Wrap(err, "deleteRoute")
+	}
+	logger.Debug().Msg("verifying that route does not exist after test")
+	routes, err := queryRouteByPath(client)
+	if err != nil {
+		return errors.Wrap(err, "queryRouteByPath")
+	}
+	if len(routes) != 0 {
+		return errors.Errorf("route found after delete: %+v", fmt.Sprintf("%+v", routes))
+	}
+
+	model.Route = api.Route{}
 	return nil
 }
 

@@ -27,6 +27,7 @@ func createRoute(
 	var buffer bytes.Buffer
 	var request http.Request
 
+	reqRoute.Path = routePath
 	reqRoute.ZoneKey = zone.ZoneKey
 	reqRoute.DomainKey = domain.DomainKey
 	reqRoute.SharedRulesKey = sharedRules.SharedRulesKey
