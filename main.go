@@ -53,6 +53,10 @@ func main() {
 		logger.Fatal().AnErr("model.loadRoute", err).Msg("main")
 	}
 
+	if err = model.loadProxy(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.loadProxy", err).Msg("main")
+	}
+
 	if err = model.getZone(logger, &client); err != nil {
 		logger.Fatal().AnErr("model.getZone", err).Msg("main")
 	}
@@ -74,7 +78,15 @@ func main() {
 	}
 
 	if err = model.modifyRoute(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.modifySharedRules", err).Msg("main")
+		logger.Fatal().AnErr("model.modifyRoute", err).Msg("main")
+	}
+
+	if err = model.modifyProxy(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.modifyProxy", err).Msg("main")
+	}
+
+	if err = model.deleteProxy(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.deleteProxy", err).Msg("main")
 	}
 
 	if err = model.deleteSharedRules(logger, &client); err != nil {

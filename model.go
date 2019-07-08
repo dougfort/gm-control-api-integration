@@ -16,6 +16,7 @@ type Model struct {
 	Listener    api.Listener
 	SharedRules api.SharedRules
 	Route       api.Route
+	Proxy       api.Proxy
 }
 
 func (model *Model) loadZone(logger zerolog.Logger, client *clientStruct) error {
@@ -169,6 +170,32 @@ func (model *Model) loadRoute(logger zerolog.Logger, client *clientStruct) error
 	}
 	if len(routes) != 1 {
 		return errors.Errorf("wrong number of routes found: %+v", routes)
+	}
+
+	return nil
+}
+
+func (model *Model) loadProxy(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("verifying that proxy does not exist before test")
+	proxies, err := queryProxyByName(client)
+	if err != nil {
+		return errors.Wrap(err, "queryProxyByName")
+	}
+	if len(proxies) != 0 {
+		return errors.Errorf("proxies found before test: %+v", proxies)
+	}
+	logger.Debug().Msg("creating proxy")
+	model.Proxy, err = createProxy(client, model.Zone, model.Domain, model.Listener)
+	if err != nil {
+		return errors.Wrap(err, "createProxy")
+	}
+	logger.Debug().Msg("verifying that route exists")
+	proxies, err = queryProxyByName(client)
+	if err != nil {
+		return errors.Wrap(err, "queryProxyByName")
+	}
+	if len(proxies) != 1 {
+		return errors.Errorf("wrong number of proxies found: %+v", proxies)
 	}
 
 	return nil
@@ -385,6 +412,39 @@ func (model *Model) modifyRoute(logger zerolog.Logger, client *clientStruct) err
 	return nil
 }
 
+func (model *Model) modifyProxy(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("editing the proxy object")
+
+	model.Proxy.ActiveFilters = []api.GMProxyFilter{api.GMProxyFilter("test-filter")}
+	proxy2, err := editProxy(client, model.Proxy)
+	if err != nil {
+		return errors.Wrap(err, "editRoute")
+	}
+	if len(proxy2.ActiveFilters) == 0 || proxy2.ActiveFilters[0] != model.Proxy.ActiveFilters[0] {
+		return errors.Errorf(
+			"PrefixRewrite mismatch: proxy: %+v; proxy2: %+v",
+			model.Proxy,
+			proxy2,
+		)
+	}
+	model.Proxy = proxy2
+
+	logger.Debug().Msg("getting the proxy object")
+	proxy3, err := getProxyByKey(client, model.Proxy.ProxyKey)
+	if err != nil {
+		return errors.Wrap(err, "getProxyByKey")
+	}
+	if !proxy3.Equals(model.Proxy) {
+		return errors.Errorf(
+			"proxy object mismatch:  proxy: %+v; proxy3: %+v",
+			model.Proxy,
+			proxy3,
+		)
+	}
+
+	return nil
+}
+
 func (model *Model) deleteCluster(logger zerolog.Logger, client *clientStruct) error {
 	logger.Debug().Msg("deleting cluster")
 	err := deleteCluster(client, model.Cluster1)
@@ -458,6 +518,25 @@ func (model *Model) deleteRoute(logger zerolog.Logger, client *clientStruct) err
 	}
 
 	model.Route = api.Route{}
+	return nil
+}
+
+func (model *Model) deleteProxy(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("deleting proxy")
+	err := deleteProxy(client, model.Proxy)
+	if err != nil {
+		return errors.Wrap(err, "deleteProxy")
+	}
+	logger.Debug().Msg("verifying that proxy does not exist after test")
+	proxies, err := queryProxyByName(client)
+	if err != nil {
+		return errors.Wrap(err, "queryProxyByName")
+	}
+	if len(proxies) != 0 {
+		return errors.Errorf("route found after delete: %+v", fmt.Sprintf("%+v", proxies))
+	}
+
+	model.Proxy = api.Proxy{}
 	return nil
 }
 
