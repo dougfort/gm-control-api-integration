@@ -10,10 +10,12 @@ import (
 )
 
 type Model struct {
-	Zone     api.Zone
-	Cluster1 api.Cluster
-	Domain   api.Domain
-	Listener api.Listener
+	Zone        api.Zone
+	Cluster1    api.Cluster
+	Domain      api.Domain
+	Listener    api.Listener
+	SharedRules api.SharedRules
+	Route       api.Route
 }
 
 func (model *Model) loadZone(logger zerolog.Logger, client *clientStruct) error {
@@ -115,6 +117,31 @@ func (model *Model) loadListener(logger zerolog.Logger, client *clientStruct) er
 	}
 	if len(listeners) != 1 {
 		return errors.Errorf("wrong number of listeners found: %+v", listeners)
+	}
+
+	return nil
+}
+func (model *Model) loadSharedRules(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("verifying that shared_rules does not exist before test")
+	sharedRulesSlice, err := querySharedRulesByName(client)
+	if err != nil {
+		return errors.Wrap(err, "querySharedRulesByName")
+	}
+	if len(sharedRulesSlice) != 0 {
+		return errors.Errorf("sharedRules found before test: %+v", sharedRulesSlice)
+	}
+	logger.Debug().Msg("creating shared_rules")
+	model.SharedRules, err = createSharedRules(client, model.Zone)
+	if err != nil {
+		return errors.Wrap(err, "createSharedRules")
+	}
+	logger.Debug().Msg("verifying that shared_rules exists")
+	sharedRulesSlice, err = querySharedRulesByName(client)
+	if err != nil {
+		return errors.Wrap(err, "querySharedRulesByName")
+	}
+	if len(sharedRulesSlice) != 1 {
+		return errors.Errorf("wrong number of shared rules found: %+v", sharedRulesSlice)
 	}
 
 	return nil
@@ -238,7 +265,7 @@ func (model *Model) modifyListener(logger zerolog.Logger, client *clientStruct) 
 	model.Listener.Port = testPort
 	listener2, err := editListener(client, model.Listener)
 	if err != nil {
-		return errors.Wrap(err, "editDomain")
+		return errors.Wrap(err, "editListener")
 	}
 	if listener2.Port != model.Listener.Port {
 		return errors.Errorf(
@@ -259,6 +286,39 @@ func (model *Model) modifyListener(logger zerolog.Logger, client *clientStruct) 
 			"listener object mismatch:  listener: %+v; listener3: %+v",
 			model.Listener,
 			listener3,
+		)
+	}
+
+	return nil
+}
+
+func (model *Model) modifySharedRules(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("editing the shared_rules object")
+
+	model.SharedRules.Properties = api.Metadata{api.Metadatum{Key: "sr-key", Value: "sr-value"}}
+	sharedRules2, err := editSharedRules(client, model.SharedRules)
+	if err != nil {
+		return errors.Wrap(err, "editSharedRules")
+	}
+	if !sharedRules2.Properties.Equals(model.SharedRules.Properties) {
+		return errors.Errorf(
+			"Property mismatch: sharedRules: %+v; sharedRules2: %+v",
+			model.SharedRules,
+			sharedRules2,
+		)
+	}
+	model.SharedRules = sharedRules2
+
+	logger.Debug().Msg("getting the shared rules object")
+	sharedRules3, err := getSharedRulesByKey(client, model.SharedRules.SharedRulesKey)
+	if err != nil {
+		return errors.Wrap(err, "getSharedRulesByKey")
+	}
+	if !sharedRules3.Equals(model.SharedRules) {
+		return errors.Errorf(
+			"sharedRules object mismatch:  sharedRules: %+v; sharedRules3: %+v",
+			model.SharedRules,
+			sharedRules3,
 		)
 	}
 
@@ -300,6 +360,25 @@ func (model *Model) deleteListener(logger zerolog.Logger, client *clientStruct) 
 	}
 
 	model.Listener = api.Listener{}
+	return nil
+}
+
+func (model *Model) deleteSharedRules(logger zerolog.Logger, client *clientStruct) error {
+	logger.Debug().Msg("deleting shared_rules")
+	err := deleteSharedRules(client, model.SharedRules)
+	if err != nil {
+		return errors.Wrap(err, "deleteSharedRules")
+	}
+	logger.Debug().Msg("verifying that shared rules does not exist after test")
+	sharedRulesSlice, err := querySharedRulesByName(client)
+	if err != nil {
+		return errors.Wrap(err, "querySharedRulesByName")
+	}
+	if len(sharedRulesSlice) != 0 {
+		return errors.Errorf("shared rules found after delete: %+v", fmt.Sprintf("%+v", sharedRulesSlice))
+	}
+
+	model.SharedRules = api.SharedRules{}
 	return nil
 }
 

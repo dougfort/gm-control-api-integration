@@ -45,6 +45,10 @@ func main() {
 		logger.Fatal().AnErr("model.loadListener", err).Msg("main")
 	}
 
+	if err = model.loadSharedRules(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.loadSharedRules", err).Msg("main")
+	}
+
 	if err = model.getZone(logger, &client); err != nil {
 		logger.Fatal().AnErr("model.getZone", err).Msg("main")
 	}
@@ -59,6 +63,14 @@ func main() {
 
 	if err = model.modifyListener(logger, &client); err != nil {
 		logger.Fatal().AnErr("model.modifyListener", err).Msg("main")
+	}
+
+	if err = model.modifySharedRules(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.modifySharedRules", err).Msg("main")
+	}
+
+	if err = model.deleteSharedRules(logger, &client); err != nil {
+		logger.Fatal().AnErr("model.deleteSharedRules", err).Msg("main")
 	}
 
 	if err = model.deleteListener(logger, &client); err != nil {
