@@ -10,7 +10,7 @@ import (
 
 type clientStruct struct {
 	logger         zerolog.Logger
-	oldtownAddress string
+	serverAddress string
 	httpClient     http.Client
 }
 

@@ -10,8 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	api "github.com/deciphernow/gm-control-api"
-	service "github.com/deciphernow/gm-control-api/service"
+	api "github.com/deciphernow/gm-control-api/api"
+	service "github.com/deciphernow/gm-control-api/api/service"
 )
 
 const zoneName = "workregion"
@@ -31,7 +31,7 @@ func createZone(client *clientStruct) (api.Zone, error) {
 	request.Method = "POST"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/zone",
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -62,7 +62,7 @@ func queryZoneByName(client *clientStruct) (api.Zones, error) {
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/zone",
 	}
 
@@ -91,7 +91,7 @@ func getZoneByKey(client *clientStruct, zoneKey api.ZoneKey) (api.Zone, error) {
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   fmt.Sprintf("/v1.0/zone/%s", url.PathEscape(string(zoneKey))),
 	}
 
@@ -113,7 +113,7 @@ func deleteZone(client *clientStruct, zone api.Zone) error {
 	request.Method = "DELETE"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   fmt.Sprintf("/v1.0/zone/%s", url.PathEscape(string(zone.ZoneKey))),
 	}
 

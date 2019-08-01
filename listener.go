@@ -10,8 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	api "github.com/deciphernow/gm-control-api"
-	service "github.com/deciphernow/gm-control-api/service"
+	api "github.com/deciphernow/gm-control-api/api"
+	service "github.com/deciphernow/gm-control-api/api/service"
 )
 
 const listenerName = "listener1"
@@ -44,7 +44,7 @@ func createListener(
 	request.Method = "POST"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/listener",
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -75,7 +75,7 @@ func queryListenerByName(client *clientStruct) (api.Listeners, error) {
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/listener",
 	}
 
@@ -104,7 +104,7 @@ func getListenerByKey(client *clientStruct, listenerKey api.ListenerKey) (api.Li
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   fmt.Sprintf("/v1.0/listener/%s", url.PathEscape(string(listenerKey))),
 	}
 
@@ -132,7 +132,7 @@ func editListener(client *clientStruct, listener api.Listener) (api.Listener, er
 	request.Method = "PUT"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   listenerKeyPath(listener),
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -155,7 +155,7 @@ func deleteListener(client *clientStruct, listener api.Listener) error {
 	request.Method = "DELETE"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   listenerKeyPath(listener),
 	}
 

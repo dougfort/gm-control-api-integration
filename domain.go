@@ -10,8 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	api "github.com/deciphernow/gm-control-api"
-	service "github.com/deciphernow/gm-control-api/service"
+	api "github.com/deciphernow/gm-control-api/api"
+	service "github.com/deciphernow/gm-control-api/api/service"
 )
 
 const domainName = "domain1"
@@ -32,7 +32,7 @@ func createDomain(client *clientStruct, zone api.Zone) (api.Domain, error) {
 	request.Method = "POST"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/domain",
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -63,7 +63,7 @@ func queryDomainByName(client *clientStruct) (api.Domains, error) {
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/domain",
 	}
 
@@ -92,7 +92,7 @@ func getDomainByKey(client *clientStruct, domainKey api.DomainKey) (api.Domain, 
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   fmt.Sprintf("/v1.0/domain/%s", url.PathEscape(string(domainKey))),
 	}
 
@@ -120,7 +120,7 @@ func editDomain(client *clientStruct, domain api.Domain) (api.Domain, error) {
 	request.Method = "PUT"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   domainKeyPath(domain),
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -143,7 +143,7 @@ func deleteDomain(client *clientStruct, domain api.Domain) error {
 	request.Method = "DELETE"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   domainKeyPath(domain),
 	}
 
