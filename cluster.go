@@ -10,8 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	api "github.com/deciphernow/gm-control-api"
-	service "github.com/deciphernow/gm-control-api/service"
+	api "github.com/deciphernow/gm-control-api/api"
+	service "github.com/deciphernow/gm-control-api/api/service"
 )
 
 const clusterName = "cluster1"
@@ -32,7 +32,7 @@ func createCluster(client *clientStruct, zone api.Zone) (api.Cluster, error) {
 	request.Method = "POST"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/cluster",
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -63,7 +63,7 @@ func queryClusterByName(client *clientStruct) (api.Clusters, error) {
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/cluster",
 	}
 
@@ -92,7 +92,7 @@ func getClusterByKey(client *clientStruct, clusterKey api.ClusterKey) (api.Clust
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   fmt.Sprintf("/v1.0/cluster/%s", url.PathEscape(string(clusterKey))),
 	}
 
@@ -120,7 +120,7 @@ func editCluster(client *clientStruct, cluster api.Cluster) (api.Cluster, error)
 	request.Method = "PUT"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   clusterKeyPath(cluster),
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -143,7 +143,7 @@ func deleteCluster(client *clientStruct, cluster api.Cluster) error {
 	request.Method = "DELETE"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   clusterKeyPath(cluster),
 	}
 

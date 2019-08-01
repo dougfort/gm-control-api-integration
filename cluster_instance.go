@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	api "github.com/deciphernow/gm-control-api"
+	api "github.com/deciphernow/gm-control-api/api"
 )
 
 func putClusterInstance(
@@ -29,7 +29,7 @@ func putClusterInstance(
 	request.Method = "PUT"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   clusterInstancesPath(cluster.ClusterKey),
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -61,7 +61,7 @@ func deleteClusterInstance(
 	request.Method = "DELETE"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   clusterInstancePath(cluster.ClusterKey, instance.Key()),
 	}
 

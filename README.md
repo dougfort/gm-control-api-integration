@@ -1,8 +1,8 @@
-# oldtown-integration-
-Integration tests for the oldtown system
+# gm-control-api-integration-
+Integration tests for the gm-control-api system
 
-## start oldtown on an empty oldtown_backend.json file
-This can be done with ./run-oldtown.sh
+## start gm-control-api on an empty backend.json file
+This can be done with ./run-gm-control-api.sh
 
 ## run the integration test
 go run .

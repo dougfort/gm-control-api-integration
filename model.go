@@ -6,7 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 
-	api "github.com/deciphernow/gm-control-api"
+	api "github.com/deciphernow/gm-control-api/api"
 )
 
 type Model struct {

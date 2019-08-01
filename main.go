@@ -25,8 +25,8 @@ func main() {
 	model := Model{}
 
 	client := clientStruct{
-		logger:         logger,
-		oldtownAddress: viper.GetString("oldtown_address"),
+		logger:        logger,
+		serverAddress: viper.GetString("gm_control_api_address"),
 	}
 
 	if err = model.loadZone(logger, &client); err != nil {
@@ -116,7 +116,7 @@ func main() {
 }
 
 func setEnvironmentDefaults() {
-	viper.SetDefault("oldtown_address", "localhost:5555")
-	viper.SetDefault("oldtown_org_key", "deciphernow")
+	viper.SetDefault("gm_control_api_address", "localhost:5555")
+	viper.SetDefault("gm_control_api_org_key", "deciphernow")
 	viper.SetDefault("log_level", "debug")
 }

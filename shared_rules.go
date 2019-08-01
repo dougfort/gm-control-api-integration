@@ -10,8 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	api "github.com/deciphernow/gm-control-api"
-	service "github.com/deciphernow/gm-control-api/service"
+	api "github.com/deciphernow/gm-control-api/api"
+	service "github.com/deciphernow/gm-control-api/api/service"
 )
 
 const sharedRulesName = "sharedRules1"
@@ -35,7 +35,7 @@ func createSharedRules(
 	request.Method = "POST"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/shared_rules",
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -66,7 +66,7 @@ func querySharedRulesByName(client *clientStruct) (api.SharedRulesSlice, error) 
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/shared_rules",
 	}
 
@@ -95,7 +95,7 @@ func getSharedRulesByKey(client *clientStruct, sharedRulesKey api.SharedRulesKey
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   fmt.Sprintf("/v1.0/shared_rules/%s", url.PathEscape(string(sharedRulesKey))),
 	}
 
@@ -123,7 +123,7 @@ func editSharedRules(client *clientStruct, sharedRules api.SharedRules) (api.Sha
 	request.Method = "PUT"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   sharedRulesKeyPath(sharedRules),
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -146,7 +146,7 @@ func deleteSharedRules(client *clientStruct, sharedRules api.SharedRules) error 
 	request.Method = "DELETE"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   sharedRulesKeyPath(sharedRules),
 	}
 

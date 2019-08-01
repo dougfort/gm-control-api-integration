@@ -10,8 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	api "github.com/deciphernow/gm-control-api"
-	service "github.com/deciphernow/gm-control-api/service"
+	api "github.com/deciphernow/gm-control-api/api"
+	service "github.com/deciphernow/gm-control-api/api/service"
 )
 
 const routePath = "/path/metrics"
@@ -39,7 +39,7 @@ func createRoute(
 	request.Method = "POST"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/route",
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -70,7 +70,7 @@ func queryRouteByPath(client *clientStruct) (api.Routes, error) {
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   "/v1.0/route",
 	}
 
@@ -99,7 +99,7 @@ func getRouteByKey(client *clientStruct, routeKey api.RouteKey) (api.Route, erro
 	request.Method = "GET"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   fmt.Sprintf("/v1.0/route/%s", url.PathEscape(string(routeKey))),
 	}
 
@@ -127,7 +127,7 @@ func editRoute(client *clientStruct, route api.Route) (api.Route, error) {
 	request.Method = "PUT"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   routeKeyPath(route),
 	}
 	request.Body = ioutil.NopCloser(&buffer)
@@ -150,7 +150,7 @@ func deleteRoute(client *clientStruct, route api.Route) error {
 	request.Method = "DELETE"
 	request.URL = &url.URL{
 		Scheme: "http",
-		Host:   client.oldtownAddress,
+		Host:   client.serverAddress,
 		Path:   routeKeyPath(route),
 	}
 

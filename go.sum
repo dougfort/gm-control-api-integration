@@ -19,8 +19,8 @@ github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f/go.mod h1:E3G3o1h8I7cfc
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/deciphernow/gm-control-api v0.2.0 h1:0adhRNjvUW/1btqZ+qT7AlDi9vjmv5GJz+iZ63fUPyQ=
-github.com/deciphernow/gm-control-api v0.2.0/go.mod h1:T+b9CSED8oLKo7AZ6m6PT7kSK+5015gEelMeS59UFE4=
+github.com/deciphernow/gm-control-api/api v0.0.0-20190731204027-a87087233068 h1:dQDfqlj0mCw69/0HSPrm4tlH5Pw7TvxTdfaWMu9XXl0=
+github.com/deciphernow/gm-control-api/api v0.0.0-20190731204027-a87087233068/go.mod h1:3e6a7gNsb0C2b7RR5OweBNj0AK8zUl+du4QwYKin2/M=
 github.com/deciphernow/gm-control-nonstdlib v0.0.0-20190507171802-cb76f78f812a h1:sSBt5lyNjOHnwSAzm5J2LNUfN07AcwVXyX9weeI5vdU=
 github.com/deciphernow/gm-control-nonstdlib v0.0.0-20190507171802-cb76f78f812a/go.mod h1:GroUDxl1jREHLoyuVdlFKucfYq4Zyy4C9gpqaX113c8=
 github.com/deciphernow/gm-control-test v0.0.0-20190507172026-c5b938f6e150 h1:ywiSijlPhA33rgU4fzHa8ArvrTmo4I3k4hVV4RBwOrQ=
@@ -142,7 +142,6 @@ golang.org/x/sys v0.0.0-20180905080454-ebe1bf3edb33/go.mod h1:STP8DvDyc/dI5b8T5h
 golang.org/x/sys v0.0.0-20181107165924-66b7b1311ac8/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20181116152217-5ac8a444bdc5/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
-golang.org/x/sys v0.0.0-20190412213103-97732733099d h1:+R4KGOnez64A81RvjARKc4UT5/tI9ujCIVX+P5KiHuI=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20190620070143-6f217b454f45 h1:Dl2hc890lrizvUppGbRWhnIh2f8jOTCQpY5IKWRS0oM=
 golang.org/x/sys v0.0.0-20190620070143-6f217b454f45/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
