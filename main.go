@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -29,89 +30,34 @@ func main() {
 		serverAddress: viper.GetString("gm_control_api_address"),
 	}
 
-	if err = model.loadZone(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.loadZone", err).Msg("main")
+	for i, f := range []func(zerolog.Logger, *clientStruct) error{
+		model.loadZone,
+		model.loadCluster,
+		model.loadDomain,
+		model.loadListener,
+		model.loadSharedRules,
+		model.loadRoute,
+		model.loadProxy,
+		model.getZone,
+		model.modifyCluster,
+		model.modifyDomain,
+		model.modifyListener,
+		model.modifySharedRules,
+		model.modifyRoute,
+		model.modifyProxy,
+		model.deleteProxy,
+		model.deleteSharedRules,
+		model.deleteRoute,
+		model.deleteListener,
+		model.deleteDomain,
+		model.deleteCluster,
+		model.deleteZone,
+	} {
+		if err =f(logger, &client); err != nil {
+			logger.Fatal().AnErr(fmt.Sprintf("%d", i), err).Msg("main")
+		}		
 	}
 
-	if err = model.loadCluster(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.loadCluster", err).Msg("main")
-	}
-
-	if err = model.loadDomain(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.loadDomain", err).Msg("main")
-	}
-
-	if err = model.loadListener(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.loadListener", err).Msg("main")
-	}
-
-	if err = model.loadSharedRules(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.loadSharedRules", err).Msg("main")
-	}
-
-	if err = model.loadRoute(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.loadRoute", err).Msg("main")
-	}
-
-	if err = model.loadProxy(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.loadProxy", err).Msg("main")
-	}
-
-	if err = model.getZone(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.getZone", err).Msg("main")
-	}
-
-	if err = model.modifyCluster(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.modifyCluster", err).Msg("main")
-	}
-
-	if err = model.modifyDomain(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.modifyDomain", err).Msg("main")
-	}
-
-	if err = model.modifyListener(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.modifyListener", err).Msg("main")
-	}
-
-	if err = model.modifySharedRules(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.modifySharedRules", err).Msg("main")
-	}
-
-	if err = model.modifyRoute(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.modifyRoute", err).Msg("main")
-	}
-
-	if err = model.modifyProxy(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.modifyProxy", err).Msg("main")
-	}
-
-	if err = model.deleteProxy(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.deleteProxy", err).Msg("main")
-	}
-
-	if err = model.deleteSharedRules(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.deleteSharedRules", err).Msg("main")
-	}
-
-	if err = model.deleteRoute(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.deleteRoute", err).Msg("main")
-	}
-
-	if err = model.deleteListener(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.deleteListener", err).Msg("main")
-	}
-
-	if err = model.deleteDomain(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.deletDomain", err).Msg("main")
-	}
-
-	if err = model.deleteCluster(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.deleteCluster", err).Msg("main")
-	}
-
-	if err = model.deleteZone(logger, &client); err != nil {
-		logger.Fatal().AnErr("model.deleteZone", err).Msg("main")
-	}
 
 }
 
